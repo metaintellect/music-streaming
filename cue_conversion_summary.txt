@@ -1,0 +1,79 @@
+CUE Conversion Summary - 2025-12-15
+===================================
+
+## Runs Completed:
+
+### Run 1: 2025-12-14 22:44:32
+Log: /tmp/cue_conversion_20251214_224432.log
+Status: Interrupted (killed mid-conversion, Volume disconnected)
+- Successfully converted: 136 albums
+- Skipped: 180 albums
+- Failed: 3 albums
+- Last album being processed when interrupted: CD-80401-The Very Best of Erich Kunzel
+
+### Run 2: 2025-12-15 12:09:28
+Log: /tmp/cue_conversion_20251215_120928.log
+Status: Completed (but many CUE files were orphaned/deleted)
+- Total CUE files found: 308
+- Successfully converted: 0 (all audio files were already deleted/missing)
+- Skipped: Most files (audio files not found or already split)
+- Failed: Several albums with errors
+
+## Error Patterns Found:
+
+1. **Audio file not found** (most common)
+   - CUE sheets exist but audio files (APE/FLAC) were already deleted
+   - ~250+ files in this category
+
+2. **Already split** 
+   - Albums that were successfully converted in Run 1
+   - Example: CD-80401-The Very Best of Erich Kunzel, CD-80081, CD-80200, CD-80298
+
+3. **Splitting failed**
+   - CD-80085 (Louis Lane - Respighi)
+   - CD-80211 (Andre Previn - Strauss An Alpine Symphony)
+   - CD-80216 (Angel Romero - Granados)
+   - CD-80486 (Tapestry)
+   - CD-80515 (Jesús López-Cobos - Dukas) - THIS ONE HUNG/CAUSED ISSUES
+
+4. **No FILE line in CUE**
+   - CUE files are corrupted or improperly formatted
+   - 100+ files with this error
+   - Examples: CD-80516 onwards
+
+5. **sed illegal byte sequence**
+   - Non-ASCII characters in filenames
+   - Cosmetic errors, don't affect functionality
+   - Examples: Files with special characters (é, ñ, etc.)
+
+## Successfully Converted Albums (from Run 1):
+
+From the 136 successful conversions, here are some examples:
+- CD-80401-The Very Best of Erich Kunzel (20 tracks)
+- CD-80403-Yolanda Kondonassis - A New Barouque
+- Multiple albums from Reference Recordings (RR series)
+- Multiple Telarc classical recordings
+
+## SACD ISOs Correctly Skipped:
+
+- 5 SACD ISO albums from /Volumes/Untitled/00_esoteric/ directory
+- All properly skipped as intended
+
+## Issues to Address on Linux:
+
+1. **USB connection stability** - Main issue causing interruptions
+2. **Orphaned CUE files** - Many CUE sheets reference deleted audio files
+3. **Corrupted CUE files** - Files missing FILE line need manual inspection
+4. **CD-80515 (Dukas)** - This album caused hanging, needs investigation
+
+## Script Location:
+
+Original: /tmp/batch_convert_cue.sh
+Backup: ~/batch_convert_cue_backup.sh
+
+## Next Steps for Linux:
+
+1. Use proper USB connection (no adapters)
+2. The script will automatically skip already-converted albums
+3. May need to clean up orphaned CUE files (those without audio)
+4. Investigate the ~5 albums that failed to split
