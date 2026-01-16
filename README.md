@@ -17,23 +17,46 @@
 
 Building a NAS + audio endpoint using Raspberry Pi 5 with Radxa Penta SATA HAT for storing a high-resolution audio collection (2000+ CDs, DSD, SACD ISO, FLAC). Roon Core runs on Mac (or other x86 machine), with Pi serving as network storage and Roon Bridge endpoint.
 
+## Table of Contents
+
+- [Hardware Components](#hardware-components)
+- [Network Topology](#network-topology)
+- [Audio Signal Paths](#audio-signal-paths)
+- [Software Architecture](#software-architecture)
+- [Setup Instructions](#setup-instructions)
+  - [Phase 1: Core System Assembly](#phase-1-core-system-assembly)
+  - [Phase 2: Roon Setup](#phase-2-roon-setup)
+  - [Phase 3: Room 1 Setup (Pi 5 HDMI → Marantz SR5015)](#phase-3-room-1-setup-pi-5-hdmi--marantz-sr5015)
+  - [Phase 4: Room 2 Setup (RPi 3 + FiiO K3)](#phase-4-room-2-setup-rpi-3--fiio-k3)
+- [Roon Multi-Room Features](#roon-multi-room-features)
+- [Roon Interface Overview](#roon-interface-overview)
+- [Music Library Management](#music-library-management)
+- [Backup Strategy](#backup-strategy)
+- [Performance Expectations](#performance-expectations)
+- [Troubleshooting](#troubleshooting)
+- [Maintenance](#maintenance)
+- [Future Expansion Ideas](#future-expansion-ideas)
+- [Resources](#resources)
+- [Philosophy: Ownership vs Subscription](#philosophy-ownership-vs-subscription)
+- [Notes & Tips](#notes--tips)
+- [Project Status](#project-status)
+
 ---
 
 ## Hardware Components
 
 ### Core System (RPi 5 Music Server)
 
-| Component | Model | Price (ex. VAT) | Source | Notes |
-|-----------|-------|-----------------|--------|-------|
-| **Raspberry Pi 5** | 8GB RAM | €82 | Berrybase.de | 4x A76 @ 2.4GHz |
-| **Radxa Penta SATA HAT** | 5-port SATA | €50 | Berrybase.de | Includes SATA cables |
-| **Radxa Top Board** | OLED + Fan | €9.60 | Berrybase.de | IP display, cooling |
-| **Active Cooler** | Official Pi 5 | €5 | Berrybase.de | CPU cooling |
-| **12V Power Supply** | MeanWell 6.67A | €23.50 | Berrybase.de | Powers drives |
-| **USB-C Power Supply** | Official 5V 5A | €8.50 | Berrybase.de | Powers Pi 5 |
-| **Hard Drive** | WD Red Pro 12TB | €382 | Instar-Informatika.hr | WD122KFBX, 5yr warranty |
-| **Network Switch** | TP-Link TL-SG108E | €30 | - | 8-port Gigabit managed |
-| **SUBTOTAL** | | **~€590** | | |
+| Component | Model | Source | Notes |
+|-----------|-------|--------|-------|
+| **Raspberry Pi 5** | 8GB RAM | [Berrybase.de](https://www.berrybase.de) | 4x A76 @ 2.4GHz |
+| **Radxa Penta SATA HAT** | 5-port SATA | [Berrybase.de](https://www.berrybase.de) | Includes SATA cables |
+| **Radxa Top Board** | OLED + Fan | [Berrybase.de](https://www.berrybase.de) | IP display, cooling |
+| **Active Cooler** | Official Pi 5 | [Berrybase.de](https://www.berrybase.de) | CPU cooling |
+| **12V Power Supply** | MeanWell 6.67A | [Berrybase.de](https://www.berrybase.de) | Powers drives |
+| **USB-C Power Supply** | Official 5V 5A | [Berrybase.de](https://www.berrybase.de) | Powers Pi 5 |
+| **Hard Drive** | WD Red Pro 14TB (x2) | [Reichelt.de](https://www.reichelt.de) | WD140KFBX, 5yr warranty, RAID 1 |
+| **Network Switch** | TP-Link TL-SG108E | [Chipoteka.hr](https://www.chipoteka.hr) | 8-port Gigabit managed |
 
 ### Already Owned
 
@@ -251,10 +274,10 @@ Storage:
 4. Hard drives mounted in Radxa HAT bays
 
 **Connections:**
-- 12TB WD Red Pro → SATA port on Radxa HAT (cable included)
+- 14TB WD Red Pro → SATA port on Radxa HAT (cable included)
 - 12V PSU → Radxa HAT power input
 - USB-C PSU → Raspberry Pi 5 power
-- Ethernet cable → Pi 5 → Netgear switch
+- Ethernet cable → Pi 5 → TP-Link switch
 - MicroSD card with OS → Pi 5
 
 **Assembly time:** ~30 minutes
@@ -274,7 +297,7 @@ sudo apt update && sudo apt upgrade -y
 
 # Check drive detection
 lsblk
-# Should see /dev/sda (12TB drive)
+# Should see /dev/sda (14TB drive)
 
 # Format drive (if new)
 sudo mkfs.ext4 /dev/sda
@@ -707,7 +730,7 @@ Roon Core (Mac) → Network → RPi 3 (Roon Bridge) → USB → FiiO K3 → PM60
 
 The Sony BDP-S390 is one of the rare Blu-ray players capable of ripping SACD discs to ISO format (DSD layer). This allows:
 - Digital preservation of SACD collection
-- Store on 12TB drive alongside other music
+- Store on 14TB drive alongside other music
 - Play via Roon, Audirvana, or compatible players
 - Keep physical disc as backup
 
@@ -715,7 +738,7 @@ The Sony BDP-S390 is one of the rare Blu-ray players capable of ripping SACD dis
 1. Insert SACD disc into Sony BDP-S390
 2. Use SACD ripper software/method (various tools available)
 3. Extract to ISO file (preserves DSD layer)
-4. Store on music server (12TB drive)
+4. Store on music server (14TB drive)
 5. Add to Roon library for streaming access
 
 **Result:** Own the music physically (disc) AND digitally (ISO on your hardware).
@@ -795,14 +818,14 @@ The Sony BDP-S390 is one of the rare Blu-ray players capable of ripping SACD dis
 ## Backup Strategy
 
 ### Primary Storage
-- **12TB WD Red Pro** (internal in Radxa HAT)
+- **14TB WD Red Pro** (internal in Radxa HAT)
 - 5-year warranty
 - 24/7 operation rated
 
 ### Backup Options
 
 #### Option 1: Second Drive in Radxa HAT
-- Add 2nd drive (10TB, 12TB, or 14TB)
+- Add 2nd drive (10TB, 14TB, or 14TB)
 - Configure automated rsync backup
 
 **Backup script:**
@@ -825,7 +848,7 @@ rsync -avh --delete /mnt/music/ /mnt/backup/music/
 #### Option 3: Cloud Backup (Long-term)
 - Backblaze B2, Wasabi, etc.
 - For irreplaceable music (rare DSD, personal rips)
-- Expensive for 12TB (~€60-100/year)
+- Expensive for 14TB (~€60-100/year)
 
 ---
 
@@ -853,62 +876,6 @@ rsync -avh --delete /mnt/music/ /mnt/backup/music/
 **Limitation:**
 - Mac must be running for Roon playback
 - WiFi dependency for Mac → NAS file reads (buffered, usually fine)
-
----
-
-## Cost Summary
-
-### Total Project Cost (B2B - ex. VAT)
-
-| Category | Items | Cost |
-|----------|-------|------|
-| **Core Hardware** | RPi 5, Radxa HAT, cooling, PSUs | €198 |
-| **Storage** | WD Red Pro 12TB | €382 |
-| **Networking** | Netgear GS305 switch | €30 |
-| **TOTAL** | | **€610** |
-
-### Ongoing Costs
-
-**Roon Subscription:**
-- Monthly: €12.99/month (~€156/year)
-- Annual: €119.88/year (saves €36)
-- Lifetime: €829 (break-even ~7 years)
-
-**Recommendation:** Start with monthly during trial, upgrade to lifetime if committed.
-
-**Electricity:**
-- RPi 5 + 1 HDD: ~15-20W
-- 24/7 operation: ~175 kWh/year
-- Cost: ~€35-50/year (depends on rates)
-
----
-
-## Comparison to Alternatives
-
-### vs Synology NAS
-
-| Feature | This Build | Synology DS224+ |
-|---------|------------|-----------------|
-| **Price** | €610 | €300 (NAS only) |
-| **With 12TB drive** | €610 | €620 |
-| **CPU** | 4x A76 @ 2.4GHz | Intel Celeron J4125 |
-| **RAM** | 8GB | 2GB (upgradeable) |
-| **Expandability** | 5 drive bays | 2 drive bays |
-| **Software** | Open (Linux) | DSM (proprietary) |
-| **Learning** | More | Less |
-| **Flexibility** | Maximum | Limited |
-
-**Verdict:** Similar price, better hardware, more flexible.
-
-### vs Dedicated Music Servers
-
-**Innuos Zen Mini Mk3:** €1,500
-**Roon Nucleus+:** €1,600
-**Aurender N100:** €2,500
-
-**This build:** €610 + €156/year Roon = **€766 first year**
-
-**Savings:** €750-1,800+ vs commercial options!
 
 ---
 
@@ -1077,10 +1044,10 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 
 **What this means:**
 - Physical media (CDs, vinyl, SACDs, Blu-rays) = owned ✅
-- Digital files on YOUR hardware (12TB drive) = owned ✅
+- Digital files on YOUR hardware (14TB drive) = owned ✅
 - Streaming services (Spotify, Tidal) = renting ❌
 
-**The 12TB drive is physical storage:**
+**The 14TB drive is physical storage:**
 - Bits stored magnetically on physical platters
 - In your home, under your control
 - Not "the cloud" - it's YOUR hardware
@@ -1102,9 +1069,9 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 ### From Planning Discussion
 
 **Key decisions made:**
-- 10TB vs 12TB → **12TB** (local purchase, full warranty)
-- Managed vs unmanaged switch → **Unmanaged** (simpler, cheaper)
-- Active Cooler → **Yes** (€6 worth it for 24/7)
+- 10TB vs 14TB → **14TB** (local purchase, full warranty)
+- Managed vs unmanaged switch → **Managed** (TP-Link TL-SG108E)
+- Active Cooler → **Yes** (worth it for 24/7 operation)
 - RTC Battery → **No** (not essential for always-on server)
 - Top Board → **Yes** (OLED display useful for headless server)
 
@@ -1114,49 +1081,14 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 - PM6007 has digital inputs (USB, coaxial, optical) - more versatile than assumed
 
 **Avoided pitfalls:**
-- Amazon 14TB: 3-7 month wait + packaging concerns
-- Protis 14TB: Only 12-month warranty
 - RPi 4 PSU: Insufficient power for Pi 5 (need 5V 5A)
 - TerraPi case: Not compatible with Pi 5
+- Some vendors offer only 12-month warranty (verify 5-year for WD Red Pro)
 
 **B2B purchasing:**
 - Pay full price with VAT
 - Reclaim VAT through accountant/taxes
 - Keep all invoices for business expenses
-
----
-
-## Timeline
-
-### Week 1: Ordering
-- ✅ Berrybase.de order placed (€198)
-- Order Instar: WD Red Pro 12TB (€477 with VAT)
-- Order Protis: Netgear GS305 (~€38 with VAT)
-
-### Week 2-3: Waiting for Delivery
-- Parts arrive from Germany (~1 week)
-- Local orders arrive (~1 week)
-- Prepare workspace
-- Download software images
-
-### Week 4: Assembly & Setup
-- Day 1: Hardware assembly (30 mins)
-- Day 2: OS installation + SMB setup (2-3 hours)
-- Day 3: Roon Core installation (2 hours)
-- Day 4: Library import + metadata (overnight scan)
-- Day 5: Test Room 1 playback
-
-### Week 5: Refinement
-- Fine-tune Roon settings
-- Organize library
-- Test different endpoints
-- Set up Room 2 (RPi 3)
-
-### Week 6+: Enjoy!
-- 14-day Roon trial evaluation
-- Decide on subscription
-- Add more music
-- Explore features
 
 ---
 
