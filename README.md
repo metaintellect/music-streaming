@@ -64,12 +64,19 @@ Building a NAS + audio endpoint using Raspberry Pi 5 with Radxa Penta SATA HAT f
 - 64GB microSD card (for Pi 5 OS)
 - Ethernet cables
 - 14TB Seagate external drive (backup/secondary storage)
-- RPi 3 (repurpose as Roon Bridge for Room 2)
+- RPi 3 with official 7" touchscreen (Roon Bridge + Now Playing display for Room 2)
+- USB IR receiver (for Marantz CD remote control)
 
 **Room 1 (Home Theater) Equipment:**
 - Marantz SR5015 AV receiver (5.0 system)
 - Panasonic DP-UB820 (4K/UHD + Blu-ray audio player)
-- Reavon X110 (DSD multichannel SACD player)
+- Reavon UBR X110 (Universal Blu-ray player - native DSD/multichannel playback)
+  - HDMI audio → Marantz SR5015 (for DSD playback)
+  - HDMI video → TV (for UI/navigation)
+  - Ethernet → Switch (wired network)
+  - ⚠️ **SMB/CIFS client BROKEN** - Cannot authenticate to NAS (beta feature never finished)
+  - **USB drive required** for DSD file access
+  - Note: Company defunct, no future firmware updates
 - Sony BDP-S390 (SACD ripper - rare capability!)
 
 **Room 2 (Stereo Listening) Equipment:**
@@ -113,7 +120,9 @@ Main Router (WiFi only access)
           |   RAID1
           |
          RPi3
-        (Bridge)
+    (Bridge + Display)
+      7" Touchscreen
+       + IR Remote
            |
         FiiO K3
            ↓
@@ -124,9 +133,10 @@ Main Router (WiFi only access)
 
 - **MacBook Pro (Roon Core):** WiFi - reads from NAS, streams to endpoints
 - **RPi 5 (NAS + Bridge):** Wired Gigabit - serves files via SMB, also audio endpoint
-- **RPi 3 (Roon Bridge):** Wired - Room 2 audio endpoint
-- **Marantz SR5015:** Wired Gigabit - Room 1 UPnP/AirPlay endpoint
-- **TV:** Wired if used for video streaming
+- **RPi 3 (Roon Bridge):** Wired - Room 2 audio endpoint with touchscreen display
+- **Reavon UBR X110:** Wired Gigabit - DSD player, **USB drive only** (SMB broken)
+- **Marantz SR5015:** Wired Gigabit - Room 1 receiver (HDMI inputs from Pi 5 + Reavon)
+- **TV:** Wired - for Reavon UI/navigation
 
 ### Data Flow
 
@@ -159,6 +169,7 @@ Mac (Core) ◄──── SMB ──── RPi 5 NAS (/mnt/nas)
 
 ### Room 1 (Living Room - Main System)
 
+**Path 1: Roon Streaming (PCM/FLAC)**
 ```
 Mac (Roon Core)
     ↓ Network (RAAT)
@@ -166,7 +177,7 @@ RPi 5 (Roon Bridge)
     ↓ Loopback → hdmi-bridge
 Mini HDMI cable
     ↓
-Marantz SR5015 (AV Receiver - HDMI input)
+Marantz SR5015 (AV Receiver - HDMI input 1)
     ↓ Speaker outputs
 Speakers
 ```
@@ -177,14 +188,49 @@ Speakers
 - AirPlay limited to CD quality (16-bit/44.1kHz)
 - HDMI carries full quality audio from Roon Bridge
 
+**Path 2: Native DSD Playback (DSD64/multichannel)**
+```
+USB Drive (with DSD files copied from NAS)
+    ↓
+Reavon UBR X110
+    ↓ HDMI audio
+Marantz SR5015 (AV Receiver - HDMI input 2)
+    ↓ Speaker outputs
+Speakers (including multichannel 5.1 for SACD)
+```
+
+**Why Reavon for DSD:**
+- **Native DSD playback** - No PCM conversion (Roon converts DSD→PCM)
+- **Multichannel support** - 5.1 SACD playback from DSD files
+- **Plays DSF/DFF/ISO files** from USB drive
+- **Better for audiophile DSD** - Preserves native DSD bitstream
+
+**Why USB instead of NAS:**
+- Reavon's SMB/CIFS client is broken (beta feature never completed)
+- Company defunct (no future firmware updates)
+- USB is only reliable method for file access
+
+**Use Reavon when:**
+- Playing DSD64 files (SACD rips)
+- Want multichannel SACD audio (5.1)
+- Prefer native DSD without conversion
+
+**Use Roon when:**
+- Playing FLAC, WAV, MP3 (standard formats)
+- Want multi-room sync or playlists
+- PCM conversion acceptable (still high quality)
+
 ### Room 2 (Stereo Listening Room)
 
 **Digital Path (Roon Streaming):**
 ```
 Mac (Roon Core)
     ↓ Network (RAAT)
-RPi 3 or RPi 5 (Roon Bridge)
-    ↓ USB
+RPi 3 (RoPieeeXL - Roon Bridge + Display)
+    ├─ 7" Touchscreen (Now Playing display)
+    ├─ USB IR receiver (Marantz remote control)
+    └─ USB audio output
+         ↓
 Option A: Direct to PM6007 USB input (uses PM6007's DAC)
 Option B: FiiO K3 (external DAC) → PM6007 analog input
     ↓
@@ -192,6 +238,12 @@ Marantz PM6007 (Integrated Amplifier)
     ↓ Speaker outputs
 Stereo Speakers (preferred pair)
 ```
+
+**Display features:**
+- Shows album art, track info, time remaining
+- Touch controls: play/pause, skip, volume
+- IR remote: Control playback from couch with Marantz CD remote
+- Screensaver dims after inactivity
 
 **Analog Sources:**
 ```
@@ -228,18 +280,19 @@ Marantz CD6007 → PM6007 Digital or Analog inputs
             │
        Network (WiFi to wired)
             │
-    ┌───────┼─────────────────────┬───────────────────┐
-    │       │                     │                   │
-    ↓       ↓                     ↓                   ↓
-┌───────────────────┐ ┌─────────────┐ ┌─────────────────┐
-│ RPi 5 (NAS +      │ │ Room 2      │ │ Control UI      │
-│ Roon Bridge)      │ │ RPi 3       │ │ iPhone/iPad     │
-│      ↓            │ │ (Bridge)    │ │ (Roon Remote)   │
-│ Mini HDMI cable   │ │ + FiiO K3   │ └─────────────────┘
-│      ↓            │ │      ↓      │
-│ Marantz SR5015    │ │ Marantz     │
-│ (Room 1 - HDMI)   │ │ PM6007      │
-└───────────────────┘ └─────────────┘
+    ┌───────┼─────────────────────┬───────────────────┬───────────────────┐
+    │       │                     │                   │                   │
+    ↓       ↓                     ↓                   ↓                   ↓
+┌───────────────────┐ ┌─────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ RPi 5 (NAS +      │ │ Room 2      │ │ Control UI      │ │ Reavon UBR X110 │
+│ Roon Bridge)      │ │ RPi 3       │ │ iPhone/iPad     │ │ (DSD Player)    │
+│      ↓            │ │ (Bridge)    │ │ (Roon Remote)   │ │  ↓ HDMI audio   │
+│ Mini HDMI cable   │ │ + FiiO K3   │ └─────────────────┘ │  ↓ HDMI video   │
+│      ↓            │ │      ↓      │                     │  ├──► Marantz    │
+│ Marantz SR5015 ◄──┼─────────────────────────────────────┤  └──► TV         │
+│ (Room 1 - HDMI)   │ │ Marantz     │                     │ (NAS via SMB)   │
+└───────────────────┘ │ PM6007      │                     └─────────────────┘
+                      └─────────────┘
 
 Storage:
 ┌─────────────────────────────────────────┐
@@ -561,40 +614,181 @@ This Loopback→HDMI workaround is non-standard and may break after:
 
 See `nas-connection.md` for verification checklist and recovery steps.
 
-#### 3.5 DSD Playback
+#### 3.5 Roon DSD Playback Limitation
 
-DSD files will be converted to PCM by Roon Core before streaming to the Bridge.
-This is normal - the Marantz SR5015 DAC handles the final conversion to analog.
+**Important:** Roon converts DSD files to PCM before streaming to Roon Bridge endpoints.
+
+- DSD → PCM conversion happens at Roon Core (Mac)
+- Converted PCM is streamed to Pi 5 Bridge
+- Still high quality, but not native DSD
+- For native DSD playback, use Reavon UBR X110 (see below)
 
 ---
 
-### Phase 4: Room 2 Setup (RPi 3 + FiiO K3)
+### Phase 3.5: Reavon UBR X110 DSD Player Setup
 
-#### 4.1 Install RoPieee on RPi 3
+> **Note:** For native DSD playback (DSD64, multichannel SACD) without PCM conversion.
+> **⚠️ IMPORTANT:** Reavon's SMB client is broken. USB drive is required.
 
-**Download:** https://ropieee.org
+#### 3.5.1 Reavon Hardware Setup
 
-1. Flash RoPieee image to microSD card
+**Physical connections:**
+1. Connect HDMI (audio) from Reavon to Marantz SR5015 input 2
+2. Connect HDMI (video) from Reavon to TV (for UI/navigation)
+3. Connect Ethernet to TP-Link switch (optional - not used for file access)
+4. Power on Reavon
+
+#### 3.5.2 USB Drive Preparation (Primary Method)
+
+**⚠️ Reavon SMB/CIFS is broken - USB is the only working method.**
+
+**Prepare USB drive on Mac:**
+1. Format USB drive: exFAT or FAT32 (for compatibility)
+2. Copy DSD files from NAS to USB:
+   ```bash
+   # Mount NAS if not already mounted
+   open smb://x@192.168.100.83/xnas
+
+   # Copy DSD folder to USB (replace YOUR_USB with drive name)
+   rsync -avh --progress /Volumes/xnas/00_DSD/ /Volumes/YOUR_USB/DSD/
+
+   # Or copy specific albums
+   cp -R /Volumes/xnas/00_DSD/Artist/Album /Volumes/YOUR_USB/DSD/
+   ```
+3. Safely eject USB drive
+4. Plug into Reavon USB port
+
+**On Reavon:**
+1. Navigate to: USB or Storage menu
+2. Browse to DSD folder
+3. Select album/track to play
+
+**File formats supported:**
+- DSF (DSD64 stereo/multichannel)
+- DFF (DSD64 stereo/multichannel)
+- ISO (SACD disc images - may work depending on Reavon firmware)
+
+**Workflow for adding new DSD files:**
+1. Rip SACD to NAS (using Sony BDP-S390)
+2. Periodically sync USB drive with new rips:
+   ```bash
+   rsync -avh --progress /Volumes/xnas/00_DSD/ /Volumes/YOUR_USB/DSD/
+   ```
+3. Update USB drive in Reavon
+
+#### 3.5.3 SMB Access (Broken - Documented for Reference)
+
+**⚠️ DO NOT ATTEMPT - SMB/CIFS client is non-functional.**
+
+**Testing performed:**
+- Firmware: Latest available (no future updates - company defunct)
+- Server discovery: Works (sees "DietPi" server)
+- Authentication: **FAILS** with all credential formats tested:
+  - `x` / `aeon`
+  - `DIETPI\x` / `aeon`
+  - `WORKGROUP\x` / `aeon`
+  - Guest access (blank credentials)
+- Result: "Login Error" on all attempts
+- Mac/Windows SMB access: Works fine (issue is Reavon-specific)
+- Conclusion: Beta SMB feature was never completed before company closure
+
+**Why it failed:**
+- Reavon SMB/CIFS client is beta quality
+- Company (Reavon) went out of business
+- No future firmware updates possible
+- Feature was never finished/debugged
+
+#### 3.5.4 Marantz SR5015 Input Configuration
+
+**Set up HDMI input for Reavon:**
+1. Marantz menu → Input Settings
+2. Select HDMI input (e.g., HDMI 2)
+3. Rename to: "Reavon DSD" or "SACD Player"
+4. Audio input: HDMI (not analog)
+5. Save
+
+**Switching between sources:**
+- **Pi 5 (Roon):** Select HDMI input 1 on Marantz
+- **Reavon (DSD):** Select HDMI input 2 on Marantz
+
+---
+
+### Phase 4: Room 2 Setup (RPi 3 + Touchscreen Display + FiiO K3)
+
+> **Note:** This setup uses RPi 3 with official touchscreen for Now Playing display and touch/IR remote control.
+
+#### 4.1 Install RoPieeeXL on RPi 3
+
+**Download:** https://ropieee.org (select XL version)
+
+**RoPieeeXL vs RoPieee:**
+- **RoPieee:** Basic Roon Bridge (headless endpoint)
+- **RoPieeeXL:** Roon Bridge + Now Playing display + touch controls + IR remote support ✅
+
+**Installation:**
+1. Flash RoPieeeXL image to microSD card (use Etcher/RPi Imager)
 2. Insert in RPi 3
-3. Connect:
-   - Ethernet or WiFi
-   - FiiO K3 via USB
-   - Power
+3. Connect hardware:
+   - Official RPi touchscreen (DSI connector)
+   - Ethernet cable (or WiFi)
+   - FiiO K3 USB DAC via USB
+   - USB IR receiver (for Marantz CD remote control)
+   - Power (5V 2.5A minimum)
 4. Boot Pi (takes 2-3 minutes first time)
+5. Screen shows RoPieeeXL boot, then Now Playing interface
 
-#### 4.2 Configure RoPieee
+#### 4.2 Configure RoPieeeXL
 
 **Web interface:**
-1. Browse to: `http://ropieee.local`
+1. Browse to: `http://ropieee.local` (from Mac/phone on same network)
 2. **Audio** tab:
-   - Zone name: "Second Room" (or preferred)
+   - Zone name: "Second Room" or "Stereo Room"
    - USB DAC: Should auto-detect FiiO K3
    - Save
-3. **Network** tab:
-   - Configure WiFi if using wireless
-4. Reboot
+3. **Display** tab (XL only):
+   - Enable display: **On**
+   - Display type: **Official 7" touchscreen** (auto-detected)
+   - Rotation: Adjust if needed (0°, 90°, 180°, 270°)
+   - Brightness: Adjust to preference
+   - Screensaver: Optional (dims after inactivity)
+   - Save
+4. **Remote** tab (XL only):
+   - Enable IR remote: **On**
+   - Remote type: Generic or test buttons
+   - Test: Press buttons on Marantz remote, verify RoPieeeXL responds
+   - Mapping: Map play/pause/skip/volume to remote buttons
+   - Save
+5. **Network** tab:
+   - Configure WiFi if using wireless (Ethernet preferred)
+6. Reboot
 
-#### 4.3 Enable in Roon
+**Touchscreen Controls:**
+- Tap album art to open zone selector
+- Swipe left/right to skip tracks
+- Tap play/pause button
+- Tap volume slider to adjust
+- Shows album art, track info, time remaining
+
+**IR Remote Controls (with USB receiver):**
+- Play/Pause: Marantz remote play button
+- Skip: Next/Previous track buttons
+- Volume: Up/Down buttons
+- Zone switching: Configurable
+
+#### 4.3 Physical Setup
+
+**Mounting options:**
+1. Official RPi touchscreen case
+2. Desktop stand (angled for viewing)
+3. Wall mount (VESA adapter available)
+
+**Cable management:**
+- Ethernet to switch
+- USB to FiiO K3 DAC
+- USB to IR receiver (small dongle)
+- Power cable (use official RPi PSU or 5V 2.5A+)
+
+#### 4.4 Enable in Roon
 
 **In Roon Remote:**
 1. Settings → Audio
@@ -723,6 +917,42 @@ Roon Core (Mac) → Network → RPi 3 (Roon Bridge) → USB → FiiO K3 → PM60
 ---
 
 ## Music Library Management
+
+### Current Library Organization (January 2026)
+
+**Library structure on NAS (`/mnt/nas/`):**
+```
+CD_RIP/                    → Staging area (empty - for new rips only)
+music/
+  ├── metal/               → 23 artists, 64 albums
+  ├── exyu/                → 241 albums (ex-Yugoslavia music)
+  ├── Basil Poledouris/    → Conan soundtrack
+  ├── Miyako/              → Metal on piano
+  ├── classical/           → (not yet imported to Roon)
+  ├── jazz/                → (future)
+  └── [other albums]
+```
+
+**Naming convention (all albums):**
+- Format: `Artist/Album (Year)/tracks`
+- Multi-disc: `Artist/Album (Year)/CD01/tracks`, `/CD02/`, etc.
+- No disc count suffixes in folder names (e.g., no "(2CD)", "(Single)")
+
+**Workflow:**
+1. Rip CDs to `CD_RIP/Artist/Album (Year)/`
+2. Run `/root/fix-multidisc.sh` if multi-disc (adds zero-padding)
+3. Move to appropriate genre folder (`music/metal/`, `music/exyu/`, etc.)
+4. Roon auto-detects new albums in watched `music/` folder
+
+**Scripts available:**
+- `fix-multidisc.sh` - Renames CD1-CD9 → CD01-CD09, cleans ._ files
+- `restructure-exyu.sh` - Converts old naming to new format (already run)
+
+**Roon Configuration:**
+- **Watched folder:** `/mnt/nas/music/` (all subfolders)
+- **Not watched:** `/mnt/nas/CD_RIP/` (staging only)
+
+See `plans/2026_01_17_PLAN-music-library-organization.md` for full details.
 
 ### SACD Ripping with Sony BDP-S390
 
@@ -1101,7 +1331,7 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 
 **Current Phase:** Fully Operational ✅
 
-**Completed (January 2025):**
+**Completed (January 2025-2026):**
 - [x] RPi 5 + Radxa SATA HAT assembled
 - [x] 2x 14TB WD Red Pro in RAID 1 configured
 - [x] DietPi OS installed
@@ -1111,7 +1341,11 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 - [x] ~~Roon Server on Pi~~ **NOT POSSIBLE** (ARM64 not supported)
 - [x] Roon Bridge installed on Pi 5
 - [x] HDMI audio working via Loopback workaround
-- [x] Pi 5 → Marantz SR5015 audio path operational
+- [x] Pi 5 → Marantz SR5015 audio path operational (HDMI input 1)
+- [x] RPi 3 + RoPieeeXL + touchscreen configured for Room 2
+- [x] Music library organized by genre (metal, exyu folders)
+- [x] Reavon UBR X110 connected for native DSD playback (HDMI input 2)
+- [x] ~~Test Reavon SMB/CIFS access to NAS~~ **FAILED** - SMB client broken, USB required
 
 **Architecture Change:**
 - Original plan: Roon Core on Pi 5 (24/7 standalone server)
@@ -1121,8 +1355,23 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 **Current Working Setup:**
 - **Pi 5:** NAS (Samba, RAID 1) + Roon Bridge + HDMI audio output
 - **Mac:** Roon Core (must be running for playback)
-- **Room 1:** Pi 5 → HDMI → Marantz SR5015 (full quality)
-- **Room 2:** Pi 3 + FiiO K3 → PM6007 (Roon Bridge endpoint)
+- **Room 1 - Dual Path:**
+  - Pi 5 → HDMI → Marantz SR5015 (Roon streaming - PCM/FLAC)
+  - Reavon UBR X110 → HDMI → Marantz SR5015 (native DSD playback)
+- **Room 2:** Pi 3 + 7" touchscreen + IR remote + FiiO K3 → PM6007 (RoPieeeXL)
+
+**Music Library (January 2026):**
+- **Metal:** 64 albums (23 artists) in `/music/metal/`
+- **Exyu:** 241 albums in `/music/exyu/`
+- **DSD:** Available in `/00_DSD/`, `/00_DSD_NO_ISO/` folders
+- **Total:** 375+ albums imported to Roon
+- **Format:** Consistent `Artist/Album (Year)/` structure
+- **Scripts:** Automated cleanup and organization tools created
+
+**DSD Playback:**
+- **Via Roon:** DSD converted to PCM (still high quality)
+- **Via Reavon:** Native DSD64, multichannel support (audiophile path)
+- **Access:** USB drive only (Reavon SMB client broken/unusable)
 
 **Network:**
 - TP-Link TL-SG108E 8-port Gigabit managed switch
@@ -1142,8 +1391,16 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 
 *Document created: December 2024*
 *Updated: January 2025 (architecture correction + HDMI audio solution)*
+*Updated: January 2026 (music library organization + Room 2 touchscreen + Reavon DSD player)*
 *Hardware: Raspberry Pi 5 (8GB) + Radxa Penta SATA HAT + 2x14TB RAID1*
+*Room 1: Pi 5 (Roon) + Reavon UBR X110 (DSD via USB) → Marantz SR5015 (dual HDMI inputs)*
+*Room 2: RPi 3 + Official 7" touchscreen + USB IR receiver (RoPieeeXL)*
 *Network: TP-Link TL-SG108E 8-port Gigabit managed switch*
 *Software: DietPi + Samba + Roon Bridge + hdmi-bridge service*
 *Roon Core: Mac (required due to ARM64 limitation)*
-*Audio: HDMI from Pi 5 to Marantz SR5015 via Loopback workaround*
+*Audio Paths:*
+  *- Room 1 Roon: Pi 5 → HDMI (Loopback) → Marantz input 1*
+  *- Room 1 DSD: USB drive → Reavon UBR X110 → HDMI → Marantz input 2 (native DSD64/multichannel)*
+  *- Room 2: RPi 3 → FiiO K3 → PM6007*
+*Library: 375+ albums (64 metal, 241 exyu) + DSD collection - organized by genre in /music/*
+*Note: Reavon SMB/CIFS broken (beta feature never completed, company defunct) - USB drive required*
