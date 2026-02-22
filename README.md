@@ -799,10 +799,12 @@ See `nas-connection.md` for verification checklist and recovery steps.
 ### Phase 4: Room 2 Setup (RPi 3 + Touchscreen Display + FiiO K3)
 
 > **Note:** This setup uses RPi 3 with official touchscreen for Now Playing display and touch/IR remote control.
+>
+> **Full setup guide:** See [docs/ROPIEE_RPI3_SETUP.md](docs/ROPIEE_RPI3_SETUP.md) for RoPieeeXL installation, network (wired/wireless), static IP, display configuration, and troubleshooting.
 
 #### 4.1 Install RoPieeeXL on RPi 3
 
-**Download:** https://ropieee.org (select XL version)
+**Download:** RoPieeeXL is not on the main page—get Pi 3 image from https://image.ropieee.io/ (e.g. `ropieeexl_ose_pi3-2025.8.2-stable.*.bin.xz`). See [docs/ROPIEE_RPI3_SETUP.md](docs/ROPIEE_RPI3_SETUP.md).
 
 **RoPieeeXL vs RoPieee:**
 - **RoPieee:** Basic Roon Bridge (headless endpoint)
@@ -874,9 +876,9 @@ See `nas-connection.md` for verification checklist and recovery steps.
 #### 4.4 Enable in Roon
 
 **In Roon Remote:**
-1. Settings → Audio
-2. **"RoPieee"** or **"Second Room"** appears
-3. Enable
+1. Settings → Audio → enable zone (e.g. **"RoPieee"** or **"RPI3 main room"**)
+2. **Settings → Extensions** → enable **RoPieee** (required for touchscreen Now Playing display)
+3. Zone name in RoPieee Display tab must match Roon exactly
 4. Test playback
 
 **Signal path:**
