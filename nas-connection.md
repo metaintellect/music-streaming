@@ -11,6 +11,13 @@
 - **User:** x
 - **Pass:** aeon
 - **Mount point:** `/mnt/nas`
+- **Guest access:** disabled
+
+## Access Policy
+- SMB guest access is disabled on the live server.
+- Authenticated access is limited to Samba user `x` for the `xnas` share.
+- SMB exposure is network-local unless ports are explicitly forwarded or the NAS is bridged into another reachable network/VPN.
+- If guest were enabled, it would only help devices that can already reach `192.168.100.83` over the local network.
 
 ## Network Hardware
 - **Switch:** TP-Link TL-SG108E (8-port Gigabit managed)
@@ -61,7 +68,7 @@ smb://192.168.100.83/xnas
 ## Roon Architecture (Working)
 
 ```
-Mac (Roon Core)
+Windows Laptop (Roon Server)
      │
      │◄──── SMB (music files) ────── Pi 5 NAS (/mnt/nas)
      │
@@ -80,6 +87,11 @@ Mac (Roon Core)
 
      └─── RAAT ───► RPi 3 Bridge ───► FiiO K3 ───► PM6007 (Room 2)
 ```
+
+### Current Server Setup
+- Dedicated Roon Server now runs on a Windows laptop.
+- Mac devices are used as Roon remotes/controllers, not as the active server.
+- NAS storage remains on the Pi 5 and is accessed over SMB by the Windows server.
 
 ### Why Loopback Workaround?
 - Pi 5 HDMI only supports IEC958_SUBFRAME_LE format (S/PDIF over HDMI)

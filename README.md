@@ -9,13 +9,14 @@
 > - See: https://community.roonlabs.com/t/roon-server-on-linux-on-arm64-platform-including-but-not-limited-to-raspberry-pi-5/257502
 >
 > **Actual working architecture:**
-> - **Mac** = Roon Core (server, library management, streaming engine)
+> - **Windows laptop** = dedicated Roon Server (server, library management, streaming engine)
+> - **Mac** = Roon remote/controller
 > - **RPi 5** = NAS (storage) + Roon Bridge (audio endpoint)
-> - Mac reads files from Pi NAS via SMB, streams audio to Pi Bridge via RAAT
+> - Windows server reads files from Pi NAS via SMB, streams audio to Pi Bridge via RAAT
 
 ## Project Overview
 
-Building a NAS + audio endpoint using Raspberry Pi 5 with Radxa Penta SATA HAT for storing a high-resolution audio collection (2000+ CDs, DSD, SACD ISO, FLAC). Roon Core runs on Mac (or other x86 machine), with Pi serving as network storage and Roon Bridge endpoint.
+Building a NAS + audio endpoint using Raspberry Pi 5 with Radxa Penta SATA HAT for storing a high-resolution audio collection (2000+ CDs, DSD, SACD ISO, FLAC). A dedicated Windows laptop now runs Roon Server, with the Pi serving as network storage and Roon Bridge endpoint.
 
 ## Table of Contents
 
@@ -132,7 +133,8 @@ Main Router (WiFi only access)
 
 ### Network Details
 
-- **MacBook Pro (Roon Core):** WiFi - reads from NAS, streams to endpoints
+- **Windows laptop (Roon Server):** Wired - reads from NAS, streams to endpoints
+- **MacBook Pro:** Roon remote/controller
 - **RPi 5 (NAS + Bridge):** Wired Gigabit - serves files via SMB, also audio endpoint
 - **RPi 3 (Roon Bridge):** Wired - Room 2 audio endpoint with touchscreen display
 - **Reavon UBR X110:** Wired Gigabit - DSD player, **USB drive only** (SMB broken)
@@ -142,7 +144,7 @@ Main Router (WiFi only access)
 ### Data Flow
 
 ```
-Mac (Core) ◄──── SMB ──── RPi 5 NAS (/mnt/nas)
+Windows Laptop (Roon Server) ◄──── SMB ──── RPi 5 NAS (/mnt/nas)
     │                         │
     │                         │
     ├─── RAAT (audio) ───────►│ Roon Bridge
@@ -154,10 +156,10 @@ Mac (Core) ◄──── SMB ──── RPi 5 NAS (/mnt/nas)
     └─── RAAT ───► RPi 3 (Bridge) → FiiO K3 → PM6007
 ```
 
-**Why this works despite Mac on WiFi:**
+**Why this works well:**
 - SMB file access is buffered (not real-time)
 - RAAT protocol buffers ~5 seconds ahead
-- Audio dropouts unlikely unless WiFi is very unstable
+- Wired server improves stability for library access and endpoint streaming
 
 **HDMI Audio Path (Pi 5 → Marantz):**
 - Roon Bridge plays to ALSA Loopback device
@@ -1032,6 +1034,7 @@ music/
 **Scripts available:**
 - `fix-multidisc.sh` - Renames CD1-CD9 → CD01-CD09, cleans ._ files
 - `restructure-exyu.sh` - Converts old naming to new format (already run)
+- `promote-cd-rip-album.sh` - Promotes one cleaned album from `CD_RIP` into the correct `music/` subtree
 
 **Roon Configuration:**
 - **Watched folder:** `/mnt/nas/music/` (all subfolders)
@@ -1518,9 +1521,9 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 - `roonbridge` - Roon audio endpoint
 - `hdmi-bridge` - Loopback to HDMI audio routing
 
-**Future Option:**
-- Add dedicated x86 machine (Intel NUC, Mac Mini) as 24/7 Roon Core
-- Pi 5 NAS/Bridge remains unchanged - just point new Core to same SMB share
+**Current Server Model:**
+- Dedicated Windows laptop is the 24/7 Roon Server
+- Pi 5 NAS/Bridge remains unchanged and serves the same SMB share
 
 ---
 
@@ -1528,33 +1531,38 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 
 ## DietPi v10 Upgrade Preparation
 
-**Status:** ⏸️ **MONITORING** - Waiting for DietPi v10.1+ release for stability.
+**Status:** ⚠️ **READY FOR A CONTROLLED UPDATE WINDOW** - safe enough to plan, but treat it as an audio-service maintenance task.
 
-**Current:** DietPi v9.20.1 → **Available:** v10.0.1 → **Target:** v10.1+
+**Last documented installed:** DietPi v9.20.1  
+**Latest reviewed upstream release:** v10.2 (March 23, 2026)  
+**User-reported current/target build:** v10.2.3  
+**Live NAS verification:** Not completed on April 15, 2026 because `ssh root@192.168.100.83` returned `No route to host`
 
 **Plan:**
-- ✅ Preparation guide created
-- ⏳ Monitoring for v10.1 release
-- ⏳ Will wait 2-4 weeks after v10.1 for stability
-- ⏳ Check forums for HDMI/audio issues before upgrading
+- ✅ Upgrade runbook refreshed for current v10.2.x review
+- ⏳ Re-run read-only NAS health checks once the host is reachable
+- ⏳ Take a fresh config backup before upgrading
+- ⏳ Verify HDMI bridge and Roon Bridge immediately after the update
 
 **Breaking Changes:**
-- Requires Debian 12 Bookworm minimum (we're on Debian 13 Trixie ✅)
-- Kernel updates may break HDMI bridge (HIGH RISK)
+- Requires Debian 12 Bookworm minimum
+- Kernel updates may break the custom HDMI bridge (HIGH RISK)
 - Systemd changes may affect service startup order
 
 **Preparation Guide:** See `plans/DIETPI_V10_UPGRADE_PREPARATION.md` for:
 - Pre-upgrade checklist and backup procedures
+- Read-only precheck commands for the NAS
 - Step-by-step upgrade procedure
 - Post-upgrade verification steps
 - Troubleshooting if HDMI bridge breaks
 - Rollback plan
-- Monitoring checklist before upgrading
+- Current readiness assessment
 
 **Monitoring:**
 - DietPi releases: https://dietpi.com/docs/releases/
+- DietPi GitHub releases: https://github.com/MichaIng/DietPi/releases
 - DietPi forums: https://dietpi.com/forum/
-- Search for: "v10.1" + "audio" or "ALSA" issues
+- Search for: `v10.2` + `audio` or `ALSA` or `HDMI`
 
 ---
 
@@ -1564,6 +1572,7 @@ ssh root@192.168.100.83 'journalctl -u hdmi-bridge -f'
 *Updated: January 2026 (HDMI bridge upgraded to 24-bit/192kHz support + esoteric-flac library sync)*
 *Updated: February 2026 (HDMI bridge restored to 192kHz with proper startup order + troubleshooting guide for shutdown issues)*
 *Updated: February 2026 (DietPi v10 upgrade preparation guide added)*
+*Updated: April 2026 (DietPi v10.2.x review + current upgrade runbook refresh)*
 *Hardware: Raspberry Pi 5 (8GB) + Radxa Penta SATA HAT + 2x14TB RAID1*
 *Room 1: Pi 5 (Roon) + Reavon UBR X110 (DSD via USB) → Marantz SR5015 (dual HDMI inputs)*
 *Room 2: RPi 3 + Official 7" touchscreen + USB IR receiver (RoPieeeXL)*

@@ -1,0 +1,222 @@
+{
+  "_comment": "CD_RIP classical → classical/cd-rip/ mapping. Format: Composer - Work (Conductor/Performer), no label. Matches esoteric pattern.",
+  "_format": "Composer - Work (Conductor/Performer)",
+  "_note": "album = exact source folder name (may be truncated by dbpoweramp/path limit)",
+  "mappings": [
+    {
+      "artist": "Artur Rubinstein",
+      "album": "Beethoven Sonatas [Hybrid SACD] (2006)",
+      "target": "Beethoven - Piano Sonatas Nos. 8, 14, 23, 26 (Rubinstein)"
+    },
+    {
+      "artist": "Artur Rubinstein",
+      "album": "Brahms; Piano Concerto No. 1 (2005)",
+      "target": "Brahms - Piano Concerto No. 1 (Rubinstein)"
+    },
+    {
+      "artist": "Artur Rubinstein",
+      "album": "Chopin; Piano Concertos Nos. 1 & 2 (1986)",
+      "target": "Chopin - Piano Concertos Nos. 1 & 2 (Rubinstein)"
+    },
+    {
+      "artist": "Calder Quartet",
+      "album": "Beethoven Hilborg (2018)",
+      "target": "Beethoven & Hillborg - String Quartets Op. 18/3, Op. 131; Kongsgaard Variations (Calder Quartet)"
+    },
+    {
+      "artist": "Charles Münch",
+      "album": "Requiem - Munch (2005)",
+      "target": "Berlioz - Requiem (Münch)"
+    },
+    {
+      "artist": "Charles Münch",
+      "album": "Saint-Saëns; Symphony No. 3; Debussy- La Mer; Ibert- Escales [Hybrid SACD] (2004",
+      "target": "Saint-Saëns - Symphony No. 3; Debussy - La Mer; Ibert - Escales (Münch)"
+    },
+    {
+      "artist": "Earl Wild",
+      "album": "Rhapsody in Blue (2005)",
+      "target": "Gershwin - Rhapsody in Blue (Wild)"
+    },
+    {
+      "artist": "Fritz Reiner",
+      "album": "Bartók; Concerto for Orchestra; Music for Strings, Percussion and Celesta; Hunga",
+      "target": "Bartók - Concerto for Orchestra; Music for Strings, Percussion and Celesta; Hungarian Sketches (Reiner)"
+    },
+    {
+      "artist": "Fritz Reiner",
+      "album": "Mussorgsky; Pictures at an Exhibition; A Night on Bald Mountain & Other Russian",
+      "target": "Mussorgsky - Pictures at an Exhibition; Night on Bald Mountain & Other Russian (Reiner)"
+    },
+    {
+      "artist": "Philippe Herreweghe",
+      "album": "Franz Schubert; Symphonies Nos. 6 'The Little' & 7 (8) 'Unfinished' (2012)",
+      "target": "Schubert - Symphonies Nos. 6 & 8 'Unfinished' (Herreweghe)"
+    },
+    {
+      "artist": "Richard Strauss",
+      "album": "Thus Spake Zarathustra; A Hero's Life [Hybrid SACD] (2004)",
+      "target": "Richard Strauss - Also sprach Zarathustra; Ein Heldenleben (Reiner)"
+    },
+    {
+      "artist": "Sakari Oramo",
+      "album": "Pejačević; Piano Concerto, Symphony (2022)",
+      "target": "Pejačević - Piano Concerto, Symphony (Oramo)"
+    },
+    {
+      "artist": "Tamás Vásáry",
+      "album": "Mozart; Piano Concertos Nos. 14 & 26 (2015)",
+      "target": "Mozart - Piano Concertos Nos. 14 & 26 (Vásáry)"
+    },
+    {
+      "artist": "Van Cliburn",
+      "album": "Tchaikovsky; Piano Concerto No. 1; Rachmaninov; Piano Concerto No. 2 (2004)",
+      "target": "Tchaikovsky & Rachmaninov - Piano Concertos Nos. 1 & 2 (Cliburn)"
+    },
+    {
+      "artist": "Various Artists",
+      "album": "Dvorák; New World Symphony; Smetana; Bartered Bride; Weinberger; Polka & Fugue (",
+      "target": "Various - Dvořák 9; Smetana Bartered Bride; Weinberger Polka & Fugue (Reiner)"
+    },
+    {
+      "artist": "Various Artists",
+      "album": "Rimsky-Korsakov; Scheherazade; Stravinsky; Song of the Nightingale [Reiner] (199",
+      "target": "Various - Rimsky-Korsakov Scheherazade; Stravinsky Song of the Nightingale (Reiner)"
+    },
+    {
+      "artist": "Antonio Vivaldi",
+      "album": "Le Quattro Stagioni [Abbado] (1980)",
+      "target": "Vivaldi - Le Quattro Stagioni (Abbado)"
+    },
+    {
+      "artist": "Berliner Philharmoniker - Herbert Von Karajan",
+      "album": "Les Pr\uFF1F Ludes, Ouvert\uFF1F Re \"1812\", Finlandia, Capriccio (1989)",
+      "target": "Various - Liszt Préludes; Tchaikovsky 1812; Sibelius Finlandia; Mendelssohn Capriccio (Karajan)"
+    },
+    {
+      "artist": "Carl Maria von Weber",
+      "album": "Der Freischütz (1973)",
+      "target": "Weber - Der Freischütz (Kleiber)"
+    },
+    {
+      "artist": "Domenico Scarlatti",
+      "album": "Piano Sonatas [Kirkpatrick] (1971)",
+      "target": "Scarlatti - Piano Sonatas (Kirkpatrick)"
+    },
+    {
+      "artist": "Ferenc Fricsay",
+      "album": "Mozart; Mass in C minor (1960)",
+      "target": "Mozart - Mass in C minor (Fricsay)"
+    },
+    {
+      "artist": "Friedrich Gulda",
+      "album": "Mozart; Piano Concerto No. 20 in D major; Piano Concerto No. 21 in C major (1975)",
+      "target": "Mozart - Piano Concertos Nos. 20 & 21 (Gulda)"
+    },
+    {
+      "artist": "Géza Anda",
+      "album": "Mozart; Piano Concertos Nos. 17 & 21, K. 453 & 467 (1961)",
+      "target": "Mozart - Piano Concertos Nos. 17 & 21 (Anda)"
+    },
+    {
+      "artist": "Herbert von Karajan",
+      "album": "Beethoven; Symphonies Nos. 6 & 8 (1963)",
+      "target": "Beethoven - Symphonies Nos. 6 & 8 (Karajan)"
+    },
+    {
+      "artist": "Herbert von Karajan",
+      "album": "Maurice Ravel; Bolero; Debussy; La Mer (1988)",
+      "target": "Ravel & Debussy - Bolero; La Mer (Karajan)"
+    },
+    {
+      "artist": "Herbert von Karajan",
+      "album": "Mozart; Symphony No. 41 \"Jupiter\"; Haydn; Symphony No. 104 \"Londoner\" (1978)",
+      "target": "Mozart & Haydn - Symphonies Nos. 41 & 104 (Karajan)"
+    },
+    {
+      "artist": "Johannes Brahms",
+      "album": "Klavierkonzert Nr. 1 (1980)",
+      "target": "Brahms - Piano Concerto No. 1 (Pollini, Böhm)"
+    },
+    {
+      "artist": "Johannes Brahms",
+      "album": "Symphony No. 4 & Tragic Overture [Bernstein] (1981)",
+      "target": "Brahms - Symphony No. 4, Tragic Overture (Bernstein)"
+    },
+    {
+      "artist": "Karl Böhm",
+      "album": "Beethoven; Symphony No. 3 'Eroica'; Fidelio & Leonra No. 3 Overtures (1999)",
+      "target": "Beethoven - Symphony No. 3; Leonore Overture No. 3 (Böhm)"
+    },
+    {
+      "artist": "Liszt",
+      "album": "Klavierkonzerte Nr. 1 & 2 - Paganini-Etüde Nr. 2 - Legende Nr. 2 (1960)",
+      "target": "Liszt - Piano Concertos Nos. 1 & 2; Paganini Étude; Légende (Richter)"
+    },
+    {
+      "artist": "London Symphony Orchestra",
+      "album": "Mozart; Symphony Nos. 40 & 41 \"Jupiter\" (1980)",
+      "target": "Mozart - Symphonies Nos. 40 & 41 (Abbado)"
+    },
+    {
+      "artist": "Ludwig van Beethoven",
+      "album": "Complete Beethoven edition, Vol. 4; Symphonies (1963)",
+      "target": "Beethoven - Symphonies (Karajan)"
+    },
+    {
+      "artist": "Ludwig van Beethoven",
+      "album": "Symphonie Nr. 9 (1970)",
+      "target": "Beethoven - Symphony No. 9 (Karajan)"
+    },
+    {
+      "artist": "Luigi Boccherini",
+      "album": "Guitar Quintets [Yepes & Melos Quartett] (1990)",
+      "target": "Boccherini - Guitar Quintets (Yepes, Melos Quartett)"
+    },
+    {
+      "artist": "Maria Stader",
+      "album": "Bach; Wachet auf ruft uns die Stimme; Magnificat BWV 243 (1962)",
+      "target": "Bach - Cantata BWV 140; Magnificat BWV 243 (Stader)"
+    },
+    {
+      "artist": "Maurice Andre",
+      "album": "Trumpet Concertos (1991)",
+      "target": "Various - Trumpet Concertos (André)"
+    },
+    {
+      "artist": "Narciso Yepes",
+      "album": "Antonio Vivaldi; Lute (Guitar) Concertos; Mandolin Concertos (1972)",
+      "target": "Vivaldi - Lute & Mandolin Concertos (Yepes)"
+    },
+    {
+      "artist": "Narciso Yepes",
+      "album": "Springtime in Aranjuez (1988)",
+      "target": "Rodrigo - Concierto de Aranjuez; Guitar Works (Yepes)"
+    },
+    {
+      "artist": "Okko Kamu",
+      "album": "Sibelius; Symphonies Nos. 1 & 3 (1973)",
+      "target": "Sibelius - Symphonies Nos. 1 & 3 (Kamu)"
+    },
+    {
+      "artist": "Sviatoslav Richter",
+      "album": "Beethoven; Piano Concerto No. 3; Schumann; Piano Concerto in A minor (1989)",
+      "target": "Beethoven & Schumann - Piano Concertos (Richter)"
+    },
+    {
+      "artist": "Thomas Füri; Camerata Bern",
+      "album": "Vivaldi; Concerti (1985)",
+      "target": "Vivaldi - Concerti (Füri, Camerata Bern)"
+    },
+    {
+      "artist": "Vienna Philharmonic Orchestra",
+      "album": "Eine Kleine Nachtmusik (2006)",
+      "target": "Mozart - Eine kleine Nachtmusik (Böhm)"
+    },
+    {
+      "artist": "Wolfgang Amadeus Mozart",
+      "album": "Piano Concertos Nos. 25 & 27 [Gulda] (1976)",
+      "target": "Mozart - Piano Concertos Nos. 25 & 27 (Gulda)"
+    }
+  ]
+}

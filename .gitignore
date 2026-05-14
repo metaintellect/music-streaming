@@ -1,2 +1,4 @@
 *.log
 cue_conversion_summary.txt
+__pycache__/
+*.py[cod]

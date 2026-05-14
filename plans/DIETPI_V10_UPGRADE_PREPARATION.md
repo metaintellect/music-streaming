@@ -1,17 +1,44 @@
-# DietPi v9 → v10 Upgrade Preparation Guide
+# DietPi v10.2.x Update Review and Upgrade Runbook
 
 **Created:** February 16, 2026  
-**Current Version:** DietPi v9.20.1  
-**Target Version:** DietPi v10.0.1+  
-**Status:** ⏸️ **WAIT** - v10.0.1 is first release, wait for v10.1+ for stability
+**Last Reviewed:** April 15, 2026  
+**Last Documented Installed Version:** DietPi v9.20.1  
+**Latest Reviewed Upstream Release:** DietPi v10.2 (released March 23, 2026)  
+**User-Reported Current/Target Build:** DietPi v10.2.3  
+**Status:** ⚠️ **READY FOR A CONTROLLED UPDATE WINDOW** - reasonable to proceed once the NAS is reachable, backups are taken, and HDMI/Roon checks can be done immediately after the upgrade
 
 ---
 
-## Breaking Changes in DietPi v10
+## Review Outcome
+
+### NAS Connection Details
+- **SSH:** `ssh root@192.168.100.83`
+- **SMB:** `smb://192.168.100.83/xnas`
+- **Reference:** `nas-connection.md`
+
+### What Was Checked On April 15, 2026
+- Local NAS runbooks and connection details in this repo
+- Official DietPi release information up to **v10.2**
+- Existing project-specific risks around the custom HDMI bridge and Roon Bridge
+
+### What Could Not Be Verified Live
+- A read-only SSH check to `root@192.168.100.83` was attempted from this machine on **April 15, 2026**
+- Result: `No route to host`
+- Because of that, the currently installed DietPi version, kernel, and live service state were **not** confirmed during this review
+
+### Safety Assessment
+- **RAID/Samba/NAS basics:** low risk from the DietPi side based on current v10 release notes
+- **Raspberry Pi 5 platform:** moderate risk because a DietPi update may also move kernel/packages
+- **Custom HDMI bridge + ALSA loopback + Roon Bridge:** high risk, because this is custom local integration and the most likely place for a regression
+- **Conclusion:** updating to current DietPi v10.2.x looks reasonable, but it is not a zero-risk update and should be treated as an audio-service maintenance window, not a casual package update
+
+---
+
+## Breaking Changes / Risk Areas
 
 ### System Requirements
-- **Minimum Debian:** Debian 12 Bookworm (we're on Debian 13 Trixie ✅)
-- **Minimum DietPi:** v8.0+ for direct upgrade (we're on v9.20.1 ✅)
+- **Minimum Debian:** Debian 12 Bookworm
+- **Minimum DietPi:** v8.0+ for direct upgrade
 - **Hardware:** Raspberry Pi 5 supported ✅
 
 ### Removed Software (Not Affecting Us)
@@ -40,10 +67,38 @@
 
 ## Pre-Upgrade Checklist
 
+### 0. Read-Only Precheck When The NAS Is Reachable Again
+```bash
+ssh root@192.168.100.83 '
+hostname
+echo "--- dietpi ---"
+cat /boot/dietpi/.version
+echo "--- kernel ---"
+uname -r
+echo "--- os ---"
+. /etc/os-release && printf "%s %s\n" "$NAME" "$VERSION"
+echo "--- services ---"
+systemctl is-active hdmi-bridge roonbridge smbd mdmonitor
+echo "--- raid ---"
+cat /proc/mdstat
+echo "--- storage ---"
+df -h /mnt/nas
+echo "--- audio ---"
+aplay -l
+lsmod | grep snd_aloop
+'
+```
+
+Expected outcome before upgrading:
+- NAS reachable over SSH
+- RAID healthy and mounted at `/mnt/nas`
+- `smbd`, `mdmonitor`, and `roonbridge` active
+- `snd_aloop` present and HDMI/loopback devices visible in `aplay -l`
+
 ### 1. Full System Backup
 ```bash
 # Backup critical configs to NAS
-sudo tar -czf /mnt/nas/dietpi-v9-backup-$(date +%Y%m%d).tar.gz \
+sudo tar -czf /mnt/nas/dietpi-pre-v10_2-upgrade-$(date +%Y%m%d).tar.gz \
   /etc/systemd/system/hdmi-bridge.service \
   /usr/local/bin/hdmi-bridge.sh \
   /etc/asound.conf \
@@ -55,7 +110,7 @@ sudo tar -czf /mnt/nas/dietpi-v9-backup-$(date +%Y%m%d).tar.gz \
   /etc/fstab
 
 # Verify backup
-ls -lh /mnt/nas/dietpi-v9-backup-*.tar.gz
+ls -lh /mnt/nas/dietpi-pre-v10_2-upgrade-*.tar.gz
 ```
 
 ### 2. Document Current State
@@ -99,11 +154,14 @@ df -h /
 
 ### Step 2: Run Upgrade
 ```bash
+# Refresh package metadata first
+apt update
+
 # Run DietPi update
 sudo dietpi-update
 
 # Follow prompts:
-# - Accept upgrade to v10
+# - Accept the offered upgrade
 # - Review changes
 # - Let it complete (may take 10-30 minutes)
 ```
@@ -115,6 +173,7 @@ sudo dietpi-update
 # Verify DietPi version
 cat /boot/dietpi/.version
 # Should show: G_DIETPI_VERSION_CORE=10
+# and a v10.2.x sub/build value if updated to the current release branch
 
 # Check kernel version
 uname -r
@@ -261,21 +320,11 @@ systemctl restart hdmi-bridge roonbridge
 
 ## Recommended Timeline
 
-**Now (v10.0.1):** ⏸️ **WAIT**
-- First release, likely has bugs
-- Wait for v10.1 or v10.2 for stability
-
-**Monitoring for v10.1 Release:**
-- Check DietPi release notes: https://dietpi.com/docs/releases/
-- Monitor DietPi forums: https://dietpi.com/forum/
-- Search for: "v10.1" + "audio" or "ALSA" or "HDMI" issues
-- Check GitHub issues: https://github.com/MichaIng/DietPi/issues
-
-**After v10.1+ Released:**
-- Wait 2-4 weeks after v10.1 release for bug reports
-- Check DietPi forums for HDMI/audio issues
-- Verify no breaking ALSA/kernel changes reported
-- Review release notes for audio subsystem changes
+**As of April 15, 2026:** ✅ **GO / CONTROLLED WINDOW**
+- DietPi v10.2 was released on March 23, 2026
+- The initial wait period after the first v10 release has passed
+- No release-note item was found that directly flags Samba, mdadm RAID, or Raspberry Pi 5 support as blocked
+- The remaining concern is the custom audio bridge, so the upgrade should only be done when audio can be tested right away
 
 **When Ready to Upgrade:**
 - Follow this guide step-by-step
@@ -382,7 +431,8 @@ dns-nameservers 192.168.100.1
 
 ## Resources
 
-- **DietPi v10 Release Notes:** https://dietpi.com/docs/releases/v10_0/
+- **DietPi Release Notes Index:** https://dietpi.com/docs/releases/
+- **DietPi GitHub Releases:** https://github.com/MichaIng/DietPi/releases
 - **DietPi Forums:** https://dietpi.com/forum/
 - **Roon Bridge Downloads:** https://roon.app/en/downloads
 - **This Project Docs:** See `README.md` and `nas-connection.md`
@@ -391,12 +441,12 @@ dns-nameservers 192.168.100.1
 
 ## Monitoring Checklist (Before Upgrading)
 
-Before upgrading to v10.1+, verify:
+Before upgrading, verify:
 
-- [ ] DietPi v10.1+ released (check https://dietpi.com/docs/releases/)
-- [ ] 2-4 weeks passed since v10.1 release
-- [ ] No major HDMI/audio issues reported in forums
-- [ ] No breaking ALSA changes in release notes
+- [ ] NAS reachable over SSH at `192.168.100.83`
+- [ ] Current installed DietPi version confirmed live
+- [ ] No major HDMI/audio issues reported for current v10.x in DietPi forums/GitHub
+- [ ] No breaking ALSA changes in current release notes
 - [ ] Kernel version compatible with current setup
 - [ ] Backup created and verified
 - [ ] Low-usage period scheduled for upgrade
@@ -408,14 +458,15 @@ Before upgrading to v10.1+, verify:
 # Check current DietPi version
 cat /boot/dietpi/.version
 
-# Check if update available
-sudo /boot/dietpi/dietpi-update --dry-run
-
 # Check current kernel
 uname -r
 
 # Verify critical services
 systemctl status hdmi-bridge roonbridge smbd
+
+# Check RAID and NAS mount
+cat /proc/mdstat
+df -h /mnt/nas
 ```
 
 ---
@@ -423,8 +474,8 @@ systemctl status hdmi-bridge roonbridge smbd
 ## Notes
 
 - Created: February 16, 2026
-- Last Updated: February 16, 2026
-- Current DietPi: v9.20.1
-- Target DietPi: v10.1+ (waiting for stability)
-- Status: ✅ Preparation guide ready, monitoring for v10.1 release
-- Next Action: Monitor DietPi releases and forums for v10.1 announcement
+- Last Updated: April 15, 2026
+- Last documented installed DietPi: v9.20.1
+- Latest reviewed release: v10.2 / user-reported `v10.2.3`
+- Status: Ready for a controlled update once the NAS is reachable and a backup window is available
+- Next Action: Run the read-only SSH precheck, then perform the upgrade with immediate HDMI/Roon verification

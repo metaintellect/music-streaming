@@ -105,16 +105,19 @@ Edit `/etc/samba/smb.conf`:
    workgroup = WORKGROUP
    server string = Pi5 NAS
    security = user
-   map to guest = Bad User
+   map to guest = Never
 
 [nas]
    path = /mnt/nas
    browseable = yes
    writable = yes
+   guest ok = no
    create mask = 0775
    directory mask = 0775
    valid users = your-username
 ```
+
+This keeps SMB authenticated-only on the NAS itself. Devices outside the LAN still cannot reach it unless you separately expose SMB with port forwarding, VPN routing, or similar network changes.
 
 ### Add Samba User
 ```bash
