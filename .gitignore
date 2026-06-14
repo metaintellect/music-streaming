@@ -2,3 +2,7 @@
 cue_conversion_summary.txt
 __pycache__/
 *.py[cod]
+node_modules
+node_modules/
+outputs/
+tmp/

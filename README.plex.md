@@ -18,23 +18,28 @@ Current roles:
   - Still serves the `xnas` Samba share.
   - Runs Plexamp Headless as a playback endpoint named `Pi 5 HDMI`.
   - Outputs to Marantz over HDMI.
-- **RPi3 DietPi (`192.168.100.70` Ethernet, `192.168.100.103` WiFi)**
-  - Fresh DietPi 64-bit install.
-  - WiFi configured and tested.
-  - Runs Plexamp Headless as a playback endpoint named `Pi 3 FiiO`.
+- **RPi3 LibreELEC (`192.168.100.69` WiFi)**
+  - Runs LibreELEC `12.2.1` with Kodi on the official DSI touchscreen.
+  - Uses `PM4K for Plex` (`script.plexmod`) as the Plex client.
   - Outputs to FiiO K3 USB DAC.
+  - Uses FLIRC for remote input; functional but not especially snappy yet.
 
 Playback flow:
 
 ```text
 Windows Plex Media Server
   -> network
-  -> Plexamp Headless on RPi5 / RPi3
-  -> HDMI or USB DAC
+  -> Plexamp Headless on RPi5
+  -> HDMI
+or
+Windows Plex Media Server
+  -> network
+  -> Kodi + PM4K for Plex on RPi3
+  -> FiiO K3 USB DAC
   -> amplifier / receiver
 ```
 
-The Plex library remains on Windows PMS. Pi devices are only players.
+The Plex library remains on Windows PMS. Pi devices are only players, but the Pi 3 is now a local Kodi/Plex client rather than a Plexamp Headless endpoint.
 
 ## Plex Playlists From Roon Excel
 
@@ -94,6 +99,7 @@ Installed on RPi5:
 - Node.js `20.19.2`
 - Plexamp Headless `4.13.1`
 - systemd service: `plexamp.service`
+- legacy Roon services: `roonbridge.service`, `hdmi-bridge.service`
 - service user: `plexamp`
 - install path: `/opt/plexamp`
 - state/cache path: `/var/lib/plexamp`
@@ -126,11 +132,93 @@ Roon services were stopped temporarily to free HDMI:
 ssh root@192.168.100.83 'systemctl stop roonbridge hdmi-bridge'
 ```
 
+### HDMI / ALSA findings
+
+The old Roon setup did not send audio straight to HDMI.
+
+It used:
+
+- ALSA Loopback for `RoonBridge`
+- a custom bridge service at `/usr/local/bin/hdmi-bridge.sh`
+- fixed stereo PCM to the connected HDMI port `vc4hdmi1`
+
+Bridge behavior:
+
+```bash
+arecord -D plughw:Loopback,0,0 -f S32_LE -r 192000 -c 2 -t raw | \
+aplay -D plughw:vc4hdmi1,0 -f S32_LE -r 192000 -c 2 -t raw
+```
+
+That mattered because it hard-forced:
+
+- HDMI port `vc4hdmi1`
+- `2` channels
+- one stable PCM path to Marantz
+
+Direct Plexamp playback was more fragile. After stop/close/resume, Marantz could occasionally come back on rear channels instead of front stereo. The likely cause was ALSA/HDMI reopening with ambiguous channel mapping.
+
+Current fix:
+
+- `roonbridge.service` and `hdmi-bridge.service` were disabled
+- `/etc/asound.conf` was updated so ALSA default output is an explicit stereo route to `vc4hdmi1`
+- `plexamp.service` was restarted after the ALSA change
+
+Current `/etc/asound.conf` shape:
+
+```ini
+pcm.loopout {
+    type plug
+    slave.pcm "hw:Loopback,0,0"
+}
+
+pcm.loopin {
+    type plug
+    slave.pcm "hw:Loopback,1,0"
+}
+
+pcm.hdmi_stereo {
+    type route
+    slave {
+        pcm "plughw:vc4hdmi1,0"
+        channels 2
+    }
+    ttable.0.0 1
+    ttable.1.1 1
+}
+
+pcm.!default {
+    type plug
+    slave.pcm "hdmi_stereo"
+    slave.channels 2
+}
+
+ctl.!default {
+    type hw
+    card vc4hdmi1
+}
+```
+
+Backup kept on RPi5:
+
+```text
+/etc/asound.conf.codex-backup
+```
+
+Useful checks:
+
+```bash
+ssh root@192.168.100.83 'systemctl status plexamp --no-pager -l'
+ssh root@192.168.100.83 'grep -n "Setting audio interface\\|Error initializing device" /var/lib/plexamp/.cache/Plexamp/log/Plexamp.log | tail -n 40'
+ssh root@192.168.100.83 'aplay -L | sed -n "1,80p"'
+ssh root@192.168.100.83 'cat /etc/asound.conf'
+```
+
 Current working state:
 
 - Plexamp Headless is active.
 - `Pi 5 HDMI` appears as a Plexamp target from Mac/mobile.
 - HDMI device was freed after stopping `roonbridge` and `hdmi-bridge`.
+- ALSA default now routes explicitly to stereo HDMI on `vc4hdmi1`.
 
 If reverting to Roon on RPi5:
 
@@ -138,229 +226,103 @@ If reverting to Roon on RPi5:
 ssh root@192.168.100.83 'systemctl stop plexamp; systemctl start roonbridge hdmi-bridge'
 ```
 
-## RPi3 DietPi State
+## RPi3 LibreELEC + Kodi + Plex
+
+The final working Pi 3 setup uses LibreELEC and Kodi, not DietPi and not Plexamp Headless.
 
 Hardware:
 
 - Raspberry Pi 3 Model B Rev 1.2
-- 1 GB RAM
-- 64-bit ARM capable
-- FiiO USB DAC planned
-- Flirc configured for Marantz remote, to be retested
-- Former RoPieee install replaced with DietPi
+- official 7" DSI touchscreen
+- FiiO K3 USB DAC
+- FLIRC USB receiver
 
-DietPi image flashed:
+Current network:
 
 ```text
-DietPi_RPi234-ARMv8-Trixie.img.xz
+WiFi: 192.168.100.69
 ```
 
-macOS flash command:
+Software:
 
-```bash
-diskutil unmountDisk /dev/disk5
-xzcat ~/Downloads/DietPi_RPi234-ARMv8-Trixie.img.xz | sudo dd of=/dev/rdisk5 bs=4m status=progress
-sync
-diskutil eject /dev/disk5
-```
+- LibreELEC `12.2.1` (`RPi2.arm`)
+- Kodi with default Estuary home restored
+- `PM4K for Plex` (`script.plexmod`) installed and enabled
+- Plex server remains Windows PMS at `192.168.100.67`
 
-Disk note:
+What was done to make Kodi/Plex work on RPi3:
 
-- `/dev/disk5` was the 15.9 GB microSD.
-- `/dev/rdisk5` was used for faster raw writes.
+1. Installed LibreELEC and confirmed the official DSI touchscreen worked.
+2. Enabled SSH and added the local `~/.ssh/id_ed25519.pub` key to `/storage/.ssh/authorized_keys`.
+3. Confirmed the FiiO DAC was visible to ALSA.
+4. Forced Kodi audio output to the FiiO K3 device.
+5. Installed `PM4K for Plex` and its Python dependencies manually from Kodi mirror package URLs over SSH.
+6. No custom PM4K/Plex add-on repository URL was configured inside Kodi itself.
+7. Linked `PM4K` to the existing Plex server using the normal `plex.tv/link` auth flow from the PM4K UI.
+8. Restored the normal Kodi home screen and added Plex to Kodi `Favorites`.
 
-Current RPi3 network:
+Installed Kodi/Plex add-ons:
 
-```text
-Ethernet: 192.168.100.70
-WiFi:     192.168.100.103
-```
+- `script.plexmod`
+- `script.module.requests`
+- `script.module.six`
+- `script.module.kodi-six`
+- `script.module.certifi`
+- `script.module.chardet`
+- `script.module.idna`
+- `script.module.urllib3`
 
-Configured WiFi SSIDs:
-
-```text
-A1_293752491
-A1_293752491_Ext
-```
-
-The Pi only saw those two. The third local SSID is likely 5 GHz; Raspberry Pi 3 Model B WiFi is 2.4 GHz only.
-
-WiFi-only test passed:
-
-- Ethernet was brought down.
-- Default route moved to `wlan0`.
-- `ping 1.1.1.1` worked.
-- Ethernet was brought back up.
-
-### RPi3 WiFi Persistence Issue
-
-After the first WiFi test, RPi3 was moved to another room and became unreachable. The live WiFi test had passed, but it had not been reboot-verified.
-
-Root cause:
-
-```ini
-dtoverlay=disable-wifi
-```
-
-was present in:
-
-```text
-/boot/firmware/config.txt
-```
-
-That disables the onboard WiFi at firmware level, so after reboot Linux did not even create `wlan0`.
-
-Fix:
-
-```bash
-ssh root@192.168.100.70
-sed -i '/^dtoverlay=disable-wifi$/d' /boot/firmware/config.txt
-reboot
-```
-
-Post-fix verification:
-
-```bash
-ssh root@192.168.100.70 'ip -br addr; ls /sys/class/net'
-ssh root@192.168.100.103 'hostname; ping -c 2 1.1.1.1'
-```
-
-Expected:
-
-```text
-wlan0 UP 192.168.100.103/24
-```
-
-Lesson: after changing DietPi WiFi, always reboot once and verify WiFi SSH still works before moving the Pi off Ethernet.
-
-Use after moving rooms:
-
-```bash
-ssh root@192.168.100.103
-```
-
-## RPi3 Display Notes
-
-The small RPi touchscreen did not show output after DietPi boot.
-
-Likely reason:
-
-- It is a DSI touchscreen, not HDMI.
-- RoPieee had display support preconfigured.
-- Fresh DietPi can boot headless without showing console on the DSI screen.
-
-This is not blocking for SSH/audio setup.
-
-Possible future display work:
-
-- enable/check Raspberry Pi DSI display overlays
-- use the screen as a kiosk/browser for Plexamp Headless web UI
-- or leave it disconnected/unused
-
-## Next Steps
-
-RPi3 endpoint work:
-
-1. RPi3 is now in the other room on WiFi.
-2. FiiO K3 USB DAC is attached and visible.
-3. Plexamp Headless is installed and working.
-4. Optional future experiment:
-   - piCorePlayer + LMS + Squeeze Plex Hub plugin
-
-Important distinction:
-
-- **Plexamp Headless** is native Plex endpoint control, but requires Plex Pass.
-- **piCorePlayer** is excellent for LMS/Squeezelite, but is not a native Plexamp endpoint.
-- Plex/LMS bridge plugins are experimental/community plumbing.
-
-## RPi3 Plexamp Headless + FiiO
-
-Installed on RPi3:
-
-- Node.js `20.19.2`
-- `alsa-utils`
-- `bzip2`
-- Plexamp Headless `4.13.1`
-- systemd service: `plexamp.service`
-- service user: `plexamp`
-- install path: `/opt/plexamp`
-- state/cache path: `/var/lib/plexamp`
-
-Verified USB devices:
+Verified USB / ALSA devices:
 
 ```text
 Clay Logic flirc
 FiiO Electronics Technology K3
+card 1: K3 [K3], device 0: USB Audio [USB Audio]
 ```
 
-Verified ALSA device:
+Kodi audio settings now point to:
 
 ```text
-card 0: K3 [K3], device 0: USB Audio [USB Audio]
+audiooutput.audiodevice=ALSA:@:CARD=K3,DEV=0|K3
+audiooutput.passthrough=false
+audiooutput.passthroughdevice=ALSA:iec958:CARD=K3,DEV=0|K3
 ```
 
-Verified Plexamp endpoint:
+Current user flow after reboot:
 
-```text
-http://192.168.100.103:32500/resources
-```
+- Kodi boots to the normal Estuary home screen.
+- Open Plex from `Favorites`.
+- Fallback path: `Add-ons -> Video add-ons -> PM4K for Plex`.
+- PM4K is linked and album browsing/playback works.
 
-Expected XML includes:
+Notes about install/login:
 
-```text
-title="Pi 3 FiiO"
-product="Plexamp"
-version="4.13.1"
-```
+- PM4K was not added through a custom repo URL inside Kodi.
+- The add-on files were fetched directly from `mirrors.kodi.tv` during SSH setup.
+- Plex account/server linking happened through the normal `plex.tv/link` flow shown by PM4K on screen.
 
-Plexamp log confirmed:
-
-```text
-BASS: Device 2: K3: USB Audio
-Companion: Registering device 'Pi 3 FiiO' at 192.168.100.103:32500.
-Companion: Started HTTP Server on port 32500 and registered.
-```
-
-Useful commands:
+Useful checks:
 
 ```bash
-ssh root@192.168.100.103 'systemctl status plexamp'
-ssh root@192.168.100.103 'journalctl -u plexamp -n 100 --no-pager'
-ssh root@192.168.100.103 'tail -n 100 /var/lib/plexamp/.cache/Plexamp/log/Plexamp.log'
-ssh root@192.168.100.103 'aplay -l; cat /proc/asound/cards'
-ssh root@192.168.100.103 'curl -s http://127.0.0.1:32500/resources'
+ssh root@192.168.100.69 'systemctl is-active kodi'
+ssh root@192.168.100.69 'aplay -l; cat /proc/asound/cards'
+ssh root@192.168.100.69 'grep -n "audiooutput\\." /storage/.kodi/userdata/guisettings.xml | sed -n "1,40p"'
+ssh root@192.168.100.69 'cat /storage/.kodi/userdata/favourites.xml'
+ssh root@192.168.100.69 'sed -n "1,120p" /storage/.kodi/userdata/addon_data/script.plexmod/settings.xml'
 ```
 
-If playback is silent:
+Important distinction:
 
-1. Open `http://192.168.100.103:32500`.
-2. Set audio output to `K3: USB Audio`.
-3. Restart Plexamp if needed:
+- **RPi5** remains a true Plexamp Headless endpoint named `Pi 5 HDMI`.
+- **RPi3** is now a local Kodi/Plex client.
+- PM4K is a separate Plex UI inside Kodi; it is not Kodi's native Music library.
+- This Pi 3 path avoids the Plex Pass requirement that came with Plexamp Headless on RPi3.
 
-```bash
-ssh root@192.168.100.103 'systemctl restart plexamp'
-```
+Current caveats:
 
-## Plexamp Behavior Notes
-
-Confirmed:
-
-- Multiple endpoints work:
-  - `Pi 5 HDMI`
-  - `Pi 3 FiiO`
-  - Mac/mobile Plexamp clients
-- Plexamp plays to one selected endpoint at a time.
-- It does not provide Roon-style synchronized grouped multi-room playback.
-- Plexamp queue mostly shows upcoming tracks, not a full scrollable history above the current track.
-- Clicking a track in an album starts playback from that track through the rest of the album.
-- For one-track-only behavior, use `Play Next` / queue actions instead of normal click.
-
-Practical queue workarounds:
-
-- use Recently Played
-- use previous button for the last few tracks
-- return to source album/playlist
-- save curated queues as playlists
+- PM4K works, but it is not especially snappy on Pi 3 hardware.
+- FLIRC works, but navigation still needs tuning/testing.
+- Keep the normal Kodi home; trying to force a special music-only home made the box harder to recover.
 
 ## Remote Access
 
@@ -438,7 +400,8 @@ Important limitation:
 - Remote Access exposes the Plex library/server.
 - It does not expose local Plexamp Headless endpoints as selectable remote players.
 - On mobile data, the phone can play on itself.
-- `Pi 3 FiiO` and `Pi 5 HDMI` are LAN control targets and are normally selectable only while the controller is on the home network.
+- `Pi 5 HDMI` is still a LAN Plexamp control target and is normally selectable only while the controller is on the home network.
+- `RPi3` now behaves as its own local Kodi/Plex client, not as a remote Plexamp target.
 - To control home Pi endpoints from outside, use a VPN such as Tailscale or WireGuard.
 
 If Plex Remote Access flips red again, test the actual port first:

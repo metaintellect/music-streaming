@@ -224,6 +224,7 @@ mapfile -t SPLIT_TRACKS < <(find "$SOURCE_DIR" -maxdepth 1 -type f \( -iname '*.
 
 WORK_DIR="$SOURCE_DIR"
 TEMP_DIR=""
+SPLIT_FROM_CUE=0
 
 if [[ -z "$ARTIST" ]]; then
     if [[ "$SOURCE_DIR" == "$CD_RIP_ROOT"/*/* ]]; then
@@ -327,6 +328,7 @@ if [[ ${#CUE_FILES[@]} -gt 0 && ${#SPLIT_TRACKS[@]} -eq 0 ]]; then
         cuetag.sh "$CUE_FILE" "$TEMP_DIR"/*.flac
     fi
     WORK_DIR="$TEMP_DIR"
+    SPLIT_FROM_CUE=1
 fi
 
 run_cmd mkdir -p "$DEST_DIR"
@@ -411,6 +413,9 @@ fi
 while IFS= read -r extra_path; do
     extra_name="$(basename "$extra_path")"
     if [[ "$extra_name" == "Folder.jpg" ]]; then
+        continue
+    fi
+    if [[ "$SPLIT_FROM_CUE" -eq 1 && "$extra_name" == *.cue ]]; then
         continue
     fi
     if [[ -d "$extra_path" ]]; then
