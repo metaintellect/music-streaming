@@ -100,6 +100,18 @@ class ExportPlaylistLibraryTest(unittest.TestCase):
             self.assertEqual(actions[0].track_number, 1)
             self.assertEqual(actions[1].track_number, 2)
 
+    def test_source_folder_art_falls_back_to_parent_album_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            disc_dir = tmp_path / "Album (2021)" / "CD01"
+            disc_dir.mkdir(parents=True)
+            track = disc_dir / "01 Artist - Song.flac"
+            track.write_bytes(b"x")
+            cover = disc_dir.parent / "Folder.jpg"
+            cover.write_bytes(b"jpg")
+
+            self.assertEqual(module.source_folder_art(track), cover)
+
     def test_build_ffmetadata_lines_include_replaygain_and_picture(self):
         with tempfile.TemporaryDirectory() as tmp:
             art = Path(tmp) / "Folder.jpg"

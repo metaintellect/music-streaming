@@ -220,7 +220,11 @@ SOURCE_PARENT_BASENAME="$(basename "$(dirname "$SOURCE_DIR")")"
 
 mapfile -t CUE_FILES < <(find "$SOURCE_DIR" -maxdepth 1 -type f -iname '*.cue' | sort)
 mapfile -t AUDIO_FILES < <(find "$SOURCE_DIR" -maxdepth 1 -type f \( -iname '*.flac' -o -iname '*.wav' -o -iname '*.ape' -o -iname '*.wv' \) | sort)
-mapfile -t SPLIT_TRACKS < <(find "$SOURCE_DIR" -maxdepth 1 -type f \( -iname '*.flac' -o -iname '*.wav' \) | sort | grep -E '/[0-9][0-9][ _-]')
+mapfile -t SPLIT_TRACKS < <(
+    find "$SOURCE_DIR" -maxdepth 1 -type f \( -iname '*.flac' -o -iname '*.wav' \) |
+        sort |
+        grep -E '/[0-9][0-9][ ._-]'
+)
 
 WORK_DIR="$SOURCE_DIR"
 TEMP_DIR=""
@@ -415,7 +419,7 @@ while IFS= read -r extra_path; do
     if [[ "$extra_name" == "Folder.jpg" ]]; then
         continue
     fi
-    if [[ "$SPLIT_FROM_CUE" -eq 1 && "$extra_name" == *.cue ]]; then
+    if [[ "$extra_name" == *.cue && ( "$SPLIT_FROM_CUE" -eq 1 || ${#SPLIT_TRACKS[@]} -gt 0 ) ]]; then
         continue
     fi
     if [[ -d "$extra_path" ]]; then

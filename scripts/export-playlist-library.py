@@ -352,10 +352,11 @@ def validate_source_paths(paths: list[Path]) -> ValidationResult:
 
 
 def source_folder_art(source: Path) -> Path | None:
-    for candidate in FOLDER_ART_CANDIDATES:
-        path = source.parent / candidate
-        if path.exists() and path.is_file():
-            return path
+    for folder in (source.parent, source.parent.parent):
+        for candidate in FOLDER_ART_CANDIDATES:
+            path = folder / candidate
+            if path.exists() and path.is_file():
+                return path
     return None
 
 
