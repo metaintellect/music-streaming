@@ -138,15 +138,28 @@ ARGS="-W -C 5 -n RPi5-Marantz -o plughw:CARD=vc4hdmi1,DEV=0 -s 192.168.100.67"
 ### Service state
 
 - `squeezelite.service`: enabled and active
+- Auto-recovery override: `/etc/systemd/system/squeezelite.service.d/restart.conf`
+- Restart policy: `Restart=on-failure`, `RestartSec=15`, `StartLimitIntervalSec=0`
 - `plexamp.service`: disabled and inactive
+
+This was added after a real failure where `squeezelite` exited because HDMI output could not be opened. The player should now retry automatically every 15 seconds and reappear in LMS once the HDMI path is usable again.
+
+### Volume notes
+
+- `RPi5-Marantz` on `vc4hdmi1` does not expose a normal ALSA playback volume control.
+- In practice this means LMS is using software volume on the Pi 5 HDMI path, while `RPi3-FiiO` can also use the DAC's `PCM` mixer.
+- Keep LMS player pref `replayGainMode` at `0` on `RPi5-Marantz` unless you explicitly want per-player loudness normalization there.
+- If the Pi 5 still feels quieter at LMS volume `100`, the remaining gain difference is usually downstream of ALSA and may need AVR input-level adjustment or an intentional software preamp.
 
 ### Useful commands
 
 ```bash
 ssh root@192.168.100.83 'systemctl status squeezelite --no-pager -l'
 ssh root@192.168.100.83 'journalctl -u squeezelite -n 100 --no-pager'
+ssh root@192.168.100.83 'systemctl show squeezelite -p Restart -p RestartUSec -p DropInPaths -p StartLimitIntervalUSec'
 ssh root@192.168.100.83 'cat /etc/default/squeezelite'
 ssh root@192.168.100.83 'aplay -L'
+ssh root@192.168.100.83 'amixer -c 2 controls'
 ```
 
 If reverting to Plexamp later:
